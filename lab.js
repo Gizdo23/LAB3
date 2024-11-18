@@ -111,11 +111,11 @@ function ball(x, y, type) {  //loptica
   this.x_move = 8;  //brzina kretanja loptice po y
   this.x = x;
   this.y = y;
-  var random = Math.random() * (160 - (-160)) + (-160);  //računa se početni slučajni kut, da loptica ide prema gore
-  var angl1 = Math.cos(random * (Math.PI / 180));
-  var angl2 = Math.sin(random * (Math.PI / 180));
-  this.x_move = this.x_move * angl1;
-  this.y_move = this.y_move * angl2;
+  var random = Math.random() * (140 - (-140)) + (-140);  //računa se početni slučajni kut, da loptica ide prema gore
+  var angl1 = Math.cos(random * (Math.PI / 180));        //stavio sam da početni kut bude više prema gore, to jest da 
+  var angl2 = Math.sin(random * (Math.PI / 180));        //ne bude tupih kutova, jer tada igra bude nezanimljiva
+  this.x_move = this.x_move * angl1;                     //u random se zamjene svi 140 brojevi sa 180 i loptica može ići u bilo
+  this.y_move = this.y_move * angl2;                     //kom kutu
   this.y_move = -Math.abs(this.y_move);
 
 
@@ -152,6 +152,8 @@ function ball(x, y, type) {  //loptica
         myGameArea.canvas.width / 2 - 160,
         myGameArea.canvas.height / 2
       );
+      var end = new Audio('gameend.mp3');   //zvuk
+      end.play();
       ctx.restore();
       myGameArea.stop();
     }
@@ -166,6 +168,8 @@ function ball(x, y, type) {  //loptica
         myGameArea.canvas.width / 2 - 160,
         myGameArea.canvas.height / 2
       );
+      var win = new Audio('victory.mp3');   //zvuk
+      win.play();
       ctx.restore();
       myGameArea.stop();
     }
