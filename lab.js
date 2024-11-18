@@ -9,7 +9,7 @@ function startGame() {
     145,
     25,
     "brown",
-    window.innerWidth * 0.65,
+    window.innerWidth * 0.5,
     window.innerHeight * 0.9
   );
   while (i < 28) {  //generira se 28 cigli u 2 reda
@@ -36,14 +36,14 @@ var myGameArea = {  //područje igre, veliki canvas objekt u kojem se događa ig
     this.frameNo = 0;
     this.interval = setInterval(updateGameArea, 20);
   },
-  stop: function () {
+  stop: function () {  //funkcija za prekid igre
     clearInterval(this.interval);
   },
-  clear: function () {
+  clear: function () {  //funkcija čišćenja objekta, koristi se za brisanje starog stanja
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
   },
 };
-function player(width, height, color, x, y, type) {
+function player(width, height, color, x, y, type) {  //funkcija za palicu iliti igrača
   this.type = type;
   this.width = width;
   this.height = height;
@@ -51,7 +51,7 @@ function player(width, height, color, x, y, type) {
   this.speed_y = 0;
   this.x = x;
   this.y = y;
-  this.update = function () {
+  this.update = function () {  //definira izgled, boju i rub
     ctx = myGameArea.context;
     ctx.save();
     ctx.translate(this.x, this.y);
@@ -62,7 +62,7 @@ function player(width, height, color, x, y, type) {
     ctx.strokeRect(this.width / -2, this.height / -2, this.width, this.height);
     ctx.restore();
   };
-  document.addEventListener("keydown", (event) => {
+  document.addEventListener("keydown", (event) => {  //sluša pritiske na lijevu i desnu strelicu, služi za pomicanje
     if (event.key == "ArrowLeft") {
       this.speed_x = -8;
       this.speed_y = 0;
@@ -71,32 +71,22 @@ function player(width, height, color, x, y, type) {
       this.speed_y = 0;
     }
   });
-  document.addEventListener("keyup", (event) => {
+  document.addEventListener("keyup", (event) => {  //sluša kada nema pritisnute strelice, palica tada stoji
     this.speed_x = 0;
   });
-  this.newPos = function () {
-    /*
-          if (this.x - this.width / 2 < 0) this.speed_x = 2;
-          else if (this.x + this.width / 2 >= myGameArea.context.canvas.width)
-            this.speed_x = -2;
-          if (this.y - this.height / 2 < 0) this.speed_y = -2;
-          else if (this.y + this.height / 2 >= myGameArea.context.canvas.height)
-            this.speed_y = 2;
-          this.x += this.speed_x;
-          this.y -= this.speed_y;
-          */
+  this.newPos = function () {  //izračunava novu poziciju palice
     this.x += this.speed_x;
     this.y -= this.speed_y;
   };
 }
 
-function brick(x, y, type) {
+function brick(x, y, type) {  //cigla
   this.type = type;
   this.width = 100;
   this.height = 30;
   this.x = x;
   this.y = y;
-  this.update = function () {
+  this.update = function () {  //izgled cigle, boja i rub
     ctx = myGameArea.context;
     ctx.save();
     ctx.translate(this.x, this.y);
@@ -107,34 +97,29 @@ function brick(x, y, type) {
     ctx.strokeRect(this.width / -2, this.height / -2, this.width, this.height);
     ctx.restore();
   };
-  this.newPos = function () {
-    /*
-          if(this.y + this.height / 2 >= ball1.y - 15 &&
-            this.y - this.height / 2 <= ball1.y + 15 &&
-            this.x + this.width / 2 >= ball1.x - 15 &&
-            this.x - this.width / 2 <= ball1.x + 15
-          ){
-            bricks.splice(index,1);
-          }else{
-          this.y = y;
-          this.x = x;
-          }
-          */
+  this.newPos = function () {  //nova pozicija cigle, uvijek ista
     this.y = y;
     this.x = x;
   };
 }
 
-function ball(x, y, type) {
+function ball(x, y, type) {  //loptica
   this.type = type;
   this.width = 100;
   this.height = 30;
-  this.y_move = 5;
-  this.x_move = 5;
+  this.y_move = 8;  //brzine kretanja loptice, po x
+  this.x_move = 8;  //brzina kretanja loptice po y
   this.x = x;
   this.y = y;
+  var random = Math.random() * (160 - (-160)) + (-160);  //računa se početni slučajni kut, da loptica ide prema gore
+  var angl1 = Math.cos(random * (Math.PI / 180));
+  var angl2 = Math.sin(random * (Math.PI / 180));
+  this.x_move = this.x_move * angl1;
+  this.y_move = this.y_move * angl2;
+  this.y_move = -Math.abs(this.y_move);
 
-  this.update = function () {
+
+  this.update = function () {  //izgled loptice, veličina
     ctx = myGameArea.context;
     ctx.save();
     ctx.beginPath();
@@ -143,22 +128,26 @@ function ball(x, y, type) {
     ctx.fill();
     ctx.stroke();
   };
-  this.newPos = function () {
+  this.newPos = function () {  //računanje poicije loptice, u ovoj funkciji se i obrađuju sudari
     this.y = this.y + this.y_move;
     this.x = this.x + this.x_move;
     if (this.y <= 15) {
       this.y_move = -this.y_move;
     }
-    if (this.y > myGameArea.canvas.height - 15) {
+    if (this.y > myGameArea.canvas.height - 15) {  //ako loptica dotakne donji rub igrice ugra je završena
       this.y_move = -this.y_move;
       //myGameArea.clear();
       ctx = myGameArea.context;
-      setBodoviCount();
+      let maksbod = getBodoviCount();
+      let trenbod = 28 - bricks.length;
+      if(trenbod > maksbod){
+        setBodoviCount();
+      }
       ctx.save();
       ctx.font = "70px Arial";
       ctx.fillStyle = "red";
       ctx.textAlign = "middle";
-      ctx.fillText(
+      ctx.fillText(  //ispisuje se poruka game over na sredini ekrana
         "GAME OVER",
         myGameArea.canvas.width / 2 - 160,
         myGameArea.canvas.height / 2
@@ -166,7 +155,7 @@ function ball(x, y, type) {
       ctx.restore();
       myGameArea.stop();
     }
-    if (bricks.length == 0) {
+    if (bricks.length == 0) {  //ako su unište sve cigle, igrač pobjeđuje te se ispisuje "winner" na sredini ekrana
       ctx = myGameArea.context;
       ctx.save();
       ctx.font = "70px Arial";
@@ -180,10 +169,10 @@ function ball(x, y, type) {
       ctx.restore();
       myGameArea.stop();
     }
-    if (this.x < 15 || this.x > myGameArea.canvas.width - 15) {
+    if (this.x < 15 || this.x > myGameArea.canvas.width - 15) {  //računa se dali se loptica sudarila sa rubom ekrana
       this.x_move = -this.x_move;
     }
-    if (
+    if (  //računa se dali se loptica sudarila sa palicom
       this.y + 15 >= myGamePiece.y - myGamePiece.height / 2 &&
       this.y - 15 <= myGamePiece.y + myGamePiece.height / 2 &&
       this.x >= myGamePiece.x - myGamePiece.width / 2 &&
@@ -191,7 +180,7 @@ function ball(x, y, type) {
     ) {
       this.y_move = -this.y_move;
     }
-    for (let i = 0; i < bricks.length; i++) {
+    for (let i = 0; i < bricks.length; i++) {  //računa se dali je loptica udarila ciglu, ako ju je udarila cigla se briše i čuje se zvuk
       let brick = bricks[i];
       if (
         this.x + 15 > brick.x - brick.width / 2 &&
@@ -207,30 +196,30 @@ function ball(x, y, type) {
         } else {
           this.x_move = -this.x_move;
         }
-        var crash = new Audio('crash.mp3'); 
+        var crash = new Audio('crash.mp3');   //zvuk
         crash.play();
-        bricks.splice(i, 1);
+        bricks.splice(i, 1);  //nestajanje cigle
         break;
       }
     }
   };
 }
 
-function setBodoviCount() {
+function setBodoviCount() {  //funkcija koja postavlja broj osvojenih bodova u local storage
   if (typeof Storage !== "undefined") {
     let bodovi = 28 - bricks.length;
-    sessionStorage.setItem("bodovi", bodovi);
+    localStorage.setItem("bodovi", bodovi);
   }
 }
 
-function getBodoviCount() {
+function getBodoviCount() {  //fukcnija koja dohvaća bodove iz local storage
   if (typeof Storage !== "undefined") {
-    let bodovi = sessionStorage.getItem("bodovi");
+    let bodovi = localStorage.getItem("bodovi");
     return bodovi;
   }
 }
 
-function updateGameArea() {
+function updateGameArea() {  //funkcija za ažuriranje područja igre, poziva funkcije ostalih elemenata
   let bodovi = getBodoviCount();
   if (bodovi == null) {
     bodovi = 0;
@@ -238,7 +227,7 @@ function updateGameArea() {
   myGameArea.clear();
   ctx = myGameArea.context;
   ctx.save();
-  ctx.font = "20px Arial";
+  ctx.font = "20px Arial";  //tekst u desnom rubu koji prikazuje trenutne bodove
   ctx.fillStyle = "black";
   ctx.textAlign = "right";
   ctx.fillText(
@@ -246,14 +235,14 @@ function updateGameArea() {
     myGameArea.canvas.width - 10,
     30
   );
-  ctx.fillText(
+  ctx.fillText(  //prikazuje maksimalan broj bodova
     "Najbolji rezultat: " + bodovi,
     myGameArea.canvas.width - 120,
     30
   );
-  ctx.fillText("Kontrole: lijeva i desna strelica", 270, 30);
+  ctx.fillText("Kontrole: lijeva i desna strelica", 270, 30);  //prikazuje upute za igranje
   ctx.restore();
-  myGamePiece.newPos();
+  myGamePiece.newPos();  //pozivaju se update i newPos za sve elemente
   myGamePiece.update();
   for (let i = 0; i < bricks.length; i++) {
     bricks[i].newPos();
